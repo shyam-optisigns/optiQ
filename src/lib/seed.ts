@@ -19,14 +19,24 @@ export async function seedDatabase() {
     }
   })
 
-  // Create some sample tables
+  // Create sample tables - a variety of 2, 4, 6, and 8-seaters
   const tables = [
     { tableNumber: '1', seatCount: 2, tableType: 'regular' },
     { tableNumber: '2', seatCount: 2, tableType: 'regular' },
-    { tableNumber: '3', seatCount: 4, tableType: 'regular' },
-    { tableNumber: '4', seatCount: 4, tableType: 'booth' },
-    { tableNumber: '5', seatCount: 6, tableType: 'regular' },
-    { tableNumber: '6', seatCount: 8, tableType: 'regular' },
+    { tableNumber: '3', seatCount: 2, tableType: 'booth' },
+    { tableNumber: '4', seatCount: 4, tableType: 'regular' },
+    { tableNumber: '5', seatCount: 4, tableType: 'regular' },
+    { tableNumber: '6', seatCount: 4, tableType: 'booth' },
+    { tableNumber: '7', seatCount: 4, tableType: 'booth' },
+    { tableNumber: '8', seatCount: 6, tableType: 'regular' },
+    { tableNumber: '9', seatCount: 6, tableType: 'regular' },
+    { tableNumber: '10', seatCount: 6, tableType: 'booth' },
+    { tableNumber: '11', seatCount: 8, tableType: 'regular' },
+    { tableNumber: '12', seatCount: 8, tableType: 'regular' },
+    { tableNumber: '13', seatCount: 2, tableType: 'bar' },
+    { tableNumber: '14', seatCount: 2, tableType: 'bar' },
+    { tableNumber: '15', seatCount: 4, tableType: 'patio' },
+    { tableNumber: '16', seatCount: 6, tableType: 'patio' },
   ]
 
   for (const table of tables) {

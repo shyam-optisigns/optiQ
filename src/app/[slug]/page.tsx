@@ -106,167 +106,126 @@ export default function RestaurantPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      <div className="max-w-2xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        {/* Restaurant Header */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden mb-8">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-8 py-10 text-white">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-2">{restaurant?.name}</h1>
-              <p className="text-indigo-100 text-lg">Join the digital queue</p>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-lg mx-auto px-4 py-8">
+        {/* Clean Header */}
+        <div className="bg-white rounded-2xl shadow-sm border mb-8">
+          <div className="px-6 py-8 text-center">
+            <div className="text-4xl mb-4">🍽️</div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{restaurant?.name}</h1>
+            <p className="text-gray-600">Join the digital queue</p>
           </div>
 
-          <div className="px-8 py-6 bg-gray-50">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {restaurant?.address && (
-                <div className="flex items-center text-gray-600">
-                  <MapPin className="h-5 w-5 mr-3 text-indigo-600" />
-                  <span className="text-sm">{restaurant.address}</span>
-                </div>
-              )}
-              {restaurant?.phone && (
-                <div className="flex items-center text-gray-600">
-                  <Phone className="h-5 w-5 mr-3 text-indigo-600" />
-                  <span className="text-sm">{restaurant.phone}</span>
-                </div>
-              )}
+          {(restaurant?.address || restaurant?.phone) && (
+            <div className="px-6 pb-6 border-t border-gray-100 pt-4">
+              <div className="space-y-2">
+                {restaurant?.address && (
+                  <div className="flex items-center text-gray-600 text-sm">
+                    <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                    <span>{restaurant.address}</span>
+                  </div>
+                )}
+                {restaurant?.phone && (
+                  <div className="flex items-center text-gray-600 text-sm">
+                    <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                    <span>{restaurant.phone}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Queue Join Form */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-          <div className="px-8 py-6 border-b border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-900 text-center">Reserve Your Spot</h2>
-            <p className="text-gray-600 text-center mt-2">Fill out the form below to join the queue</p>
+        {/* Clean Form */}
+        <div className="bg-white rounded-2xl shadow-sm border">
+          <div className="px-6 py-6 border-b border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-900">Join Queue</h2>
+            <p className="text-gray-500 text-sm mt-1">Fill out your details below</p>
           </div>
 
-          <div className="px-8 py-8">
+          <div className="p-6">
             {error && (
-              <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-r-lg">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                </div>
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p className="text-red-700 text-sm">{error}</p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 gap-6">
-                <div>
-                  <label htmlFor="customerName" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Your Name *
-                  </label>
-                  <input
-                    type="text"
-                    id="customerName"
-                    required
-                    value={formData.customerName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-lg"
-                    placeholder="Enter your full name"
-                  />
-                </div>
+              <div>
+                <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  id="customerName"
+                  required
+                  value={formData.customerName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white"
+                  placeholder="Enter your full name"
+                />
+              </div>
 
-                <div>
-                  <label htmlFor="customerEmail" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="email"
-                      id="customerEmail"
-                      required
-                      value={formData.customerEmail}
-                      onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
-                      className="w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-lg"
-                      placeholder="your@email.com"
-                    />
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
+              <div>
+                <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  id="customerEmail"
+                  required
+                  value={formData.customerEmail}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customerEmail: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white"
+                  placeholder="your@email.com"
+                />
+                <p className="text-xs text-gray-500 mt-1">We'll email you updates about your queue position</p>
+              </div>
 
-                <div>
-                  <label htmlFor="partySize" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Party Size *
-                  </label>
-                  <div className="relative">
-                    <select
-                      id="partySize"
-                      value={formData.partySize}
-                      onChange={(e) => setFormData(prev => ({ ...prev, partySize: parseInt(e.target.value) }))}
-                      className="w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-lg appearance-none bg-white cursor-pointer"
-                    >
-                      {Array.from({ length: restaurant?.settings?.maxPartySize || 8 }, (_, i) => (
-                        <option key={i + 1} value={i + 1}>
-                          {i + 1} {i === 0 ? 'person' : 'people'}
-                        </option>
-                      ))}
-                    </select>
-                    <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <ChevronRight className="absolute right-4 top-1/2 transform -translate-y-1/2 rotate-90 h-5 w-5 text-gray-400" />
-                  </div>
-                </div>
+              <div>
+                <label htmlFor="partySize" className="block text-sm font-medium text-gray-700 mb-2">
+                  Party Size
+                </label>
+                <select
+                  id="partySize"
+                  value={formData.partySize}
+                  onChange={(e) => setFormData(prev => ({ ...prev, partySize: parseInt(e.target.value) }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white appearance-none cursor-pointer"
+                >
+                  {Array.from({ length: restaurant?.settings?.maxPartySize || 8 }, (_, i) => (
+                    <option key={i + 1} value={i + 1} className="text-gray-900">
+                      {i + 1} {i === 0 ? 'person' : 'people'}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-8 rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:opacity-50 disabled:cursor-not-allowed text-lg shadow-lg hover:shadow-xl"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? (
                   <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                     Joining Queue...
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center">
-                    <Clock className="h-6 w-6 mr-3" />
-                    Join Queue
-                  </div>
+                  'Join Queue'
                 )}
               </button>
             </form>
           </div>
         </div>
 
-        {/* Information Card */}
-        <div className="mt-8 bg-indigo-50 rounded-2xl border-2 border-indigo-100 p-6">
+        {/* Info Section */}
+        <div className="mt-8 bg-blue-50 rounded-2xl p-6">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-indigo-600 rounded-full mb-4">
-              <Mail className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="text-lg font-semibold text-indigo-900 mb-2">Stay Informed</h3>
-            <p className="text-indigo-700 text-sm leading-relaxed">
-              We'll send you email updates about your queue position and notify you when your table is ready.
-              No need to wait around – you can leave and come back when it's your turn!
+            <div className="text-2xl mb-3">📧</div>
+            <h3 className="font-semibold text-gray-900 mb-2">Email Notifications</h3>
+            <p className="text-gray-600 text-sm">
+              We'll send you email updates about your position and notify you when your table is ready.
             </p>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
-            <div className="text-3xl mb-2">⏱️</div>
-            <h4 className="font-semibold text-gray-900 mb-1">Real-time Updates</h4>
-            <p className="text-sm text-gray-600">Get live position and wait time estimates</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
-            <div className="text-3xl mb-2">📧</div>
-            <h4 className="font-semibold text-gray-900 mb-1">Email Notifications</h4>
-            <p className="text-sm text-gray-600">No need to constantly check your position</p>
-          </div>
-          <div className="bg-white rounded-xl p-6 text-center shadow-sm border border-gray-100">
-            <div className="text-3xl mb-2">🎯</div>
-            <h4 className="font-semibold text-gray-900 mb-1">Smart Seating</h4>
-            <p className="text-sm text-gray-600">Optimized table assignments for faster service</p>
           </div>
         </div>
       </div>

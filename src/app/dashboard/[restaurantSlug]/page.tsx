@@ -162,6 +162,16 @@ export default function RestaurantDashboard() {
     return { available, occupied, cleaning, maintenance, total: tables.length }
   }
 
+  const getTableTypeIcon = (tableType: string) => {
+    switch (tableType) {
+      case 'booth': return '🛋️'
+      case 'bar': return '🍺'
+      case 'patio': return '🌞'
+      case 'regular':
+      default: return '🍽️'
+    }
+  }
+
 
   const formatDuration = (timestamp: string | undefined) => {
     if (!timestamp) return ''
@@ -199,304 +209,241 @@ export default function RestaurantDashboard() {
   const stats = getTableStats()
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">{restaurant?.name}</h1>
-                <p className="mt-1 text-sm text-gray-500">Restaurant Queue Management</p>
-              </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <Clock className="h-4 w-4" />
-                <span>Last updated: {new Date().toLocaleTimeString()}</span>
+    <div className="h-screen bg-gray-50 overflow-hidden relative">
+      {/* Clean Material Header */}
+      <div className="absolute top-0 left-0 right-0 z-30 bg-white shadow-sm">
+        <div className="px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-8">
+              <h1 className="text-2xl font-medium text-gray-900">
+                {restaurant?.name || 'Restaurant Dashboard'}
+              </h1>
+              <div className="flex gap-6 text-sm text-gray-600">
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="font-medium">{stats.available} Available</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <span className="font-medium">{stats.occupied} Occupied</span>
+                </span>
+                <span className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
+                  <span className="font-medium">{stats.cleaning} Cleaning</span>
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center">
-              <Users className="h-8 w-8 text-indigo-600" />
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{waitingQueue.length}</p>
-                <p className="text-sm font-medium text-gray-500">In Queue</p>
-              </div>
-            </div>
-          </div>
+      {/* Clean Restaurant Floor Layout */}
+      <div className="absolute inset-0 pt-20 bg-gray-50" style={{ right: '416px' }}>
+        <div className="h-full w-full p-8 overflow-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            {tables.map((table, index) => {
+              const isUpdating = actionInProgress === `table-${table.id}`
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center">
-              <CheckCircle className="h-8 w-8 text-emerald-600" />
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.available}</p>
-                <p className="text-sm font-medium text-gray-500">Available</p>
-              </div>
-            </div>
-          </div>
+              return (
+                <div
+                  key={table.id}
+                  className={`relative bg-white rounded-2xl shadow-sm border transition-all duration-200 hover:shadow-md ${
+                    table.status === 'available'
+                      ? 'border-green-200 hover:border-green-300' :
+                    table.status === 'occupied'
+                      ? 'border-red-200 hover:border-red-300' :
+                    table.status === 'cleaning'
+                      ? 'border-amber-200 hover:border-amber-300' :
+                    'border-gray-200 hover:border-gray-300'
+                  } ${isUpdating ? 'opacity-60' : ''}`}
+                  style={{
+                    minHeight: '200px',
+                    height: '200px'
+                  }}
+                >
+                  {/* Status Dot */}
+                  <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${
+                    table.status === 'available' ? 'bg-green-500' :
+                    table.status === 'occupied' ? 'bg-red-500' :
+                    table.status === 'cleaning' ? 'bg-amber-500' :
+                    'bg-gray-400'
+                  }`}></div>
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center">
-              <XCircle className="h-8 w-8 text-red-600" />
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.occupied}</p>
-                <p className="text-sm font-medium text-gray-500">Occupied</p>
-              </div>
-            </div>
-          </div>
+                  {/* Floating Action Button */}
+                  {(table.status === 'occupied' || table.status === 'cleaning') && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        updateTableStatus(table.id, 'available')
+                      }}
+                      disabled={isUpdating}
+                      className={`absolute bottom-3 right-3 w-8 h-8 rounded-full shadow-lg transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        table.status === 'occupied'
+                          ? 'bg-green-600 hover:bg-green-700'
+                          : 'bg-green-600 hover:bg-green-700'
+                      }`}
+                      title={table.status === 'occupied' ? 'Customer Left' : 'Ready'}
+                    >
+                      <div className="text-white text-sm">
+                        {isUpdating ? '...' : table.status === 'occupied' ? '✓' : '✨'}
+                      </div>
+                    </button>
+                  )}
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center">
-              <AlertTriangle className="h-8 w-8 text-amber-600" />
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.cleaning}</p>
-                <p className="text-sm font-medium text-gray-500">Cleaning</p>
-              </div>
-            </div>
-          </div>
+                  <div className="p-4 text-center h-full flex flex-col">
+                    {/* Table Icon */}
+                    <div className="mb-3">
+                      <div className="text-3xl mb-2">
+                        {getTableTypeIcon(table.tableType)}
+                      </div>
+                      <div className="font-semibold text-xl text-gray-900">
+                        {table.tableNumber}
+                      </div>
+                      <div className="text-sm text-gray-500 font-medium">
+                        {table.seatCount} seats • {table.tableType}
+                      </div>
+                    </div>
 
-          <div className="bg-white rounded-xl shadow-sm border p-6">
-            <div className="flex items-center">
-              <Utensils className="h-8 w-8 text-gray-600" />
-              <div className="ml-3">
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                <p className="text-sm font-medium text-gray-500">Total Tables</p>
-              </div>
+                    {/* Customer Info Pills */}
+                    {table.status === 'occupied' && table.currentCustomerName && (
+                      <div className="mb-3 space-y-2">
+                        <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                          👤 {table.currentCustomerName}
+                        </div>
+                        <div className="flex justify-center gap-2">
+                          <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                            👥 {table.currentPartySize}
+                          </div>
+                          <div className="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            ⏱️ {formatDuration(table.occupiedAt)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Status Badge */}
+                    <div className="mt-auto">
+                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                        table.status === 'available'
+                          ? 'bg-green-100 text-green-800' :
+                        table.status === 'occupied'
+                          ? 'bg-red-100 text-red-800' :
+                        table.status === 'cleaning'
+                          ? 'bg-amber-100 text-amber-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {table.status === 'available' ? 'Available' :
+                         table.status === 'occupied' ? 'Occupied' :
+                         table.status === 'cleaning' ? 'Cleaning' :
+                         'Maintenance'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Material Design Queue Panel */}
+      <div className="absolute top-24 right-6 bottom-6 w-96 bg-white rounded-2xl shadow-lg border z-40 flex flex-col">
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Queue</h2>
+              <p className="text-sm text-gray-500">Waiting customers</p>
+            </div>
+            <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+              {waitingQueue.length}
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Queue Management */}
-          <div className="bg-white rounded-xl shadow-sm border">
-            <div className="px-6 py-4 border-b">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900">Current Queue</h2>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                  {waitingQueue.length} waiting
-                </span>
-              </div>
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          {waitingQueue.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 p-8">
+              <Users className="w-16 h-16 mb-4 text-gray-300" />
+              <p className="text-lg font-medium text-gray-600 mb-1">No queue</p>
+              <p className="text-sm text-gray-500">All customers seated</p>
             </div>
+          ) : (
+            <div className="h-full overflow-y-auto p-4 space-y-3">
+              {waitingQueue.map((entry, index) => {
+                const isSeating = actionInProgress === `seat-${entry.id}`
+                const suggestedTables = getSuggestedTables(entry.partySize)
+                const waitTime = Math.round((Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60))
 
-            <div className="p-6">
-              {waitingQueue.length === 0 ? (
-                <div className="text-center py-12">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No customers in queue</h3>
-                  <p className="text-gray-500">All caught up! Ready for new customers.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {waitingQueue.map((entry, index) => {
-                    const suggestedTables = getSuggestedTables(entry.partySize)
-                    const waitTime = Math.round((Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60))
-                    const isSeating = actionInProgress === `seat-${entry.id}`
-
-                    return (
-                      <div key={entry.id} className={`rounded-lg border-2 p-6 transition-all ${
-                        index === 0 ? 'border-indigo-200 bg-indigo-50' :
-                        isSeating ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-white'
-                      }`}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-4 mb-3">
-                              <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold text-lg ${
-                                index === 0 ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
-                              }`}>
-                                #{index + 1}
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-gray-900">{entry.customerName}</h3>
-                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                  <span className="flex items-center gap-1">
-                                    <Users className="h-4 w-4" />
-                                    Party of {entry.partySize}
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    Waiting {waitTime} min
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-1 text-sm text-gray-600 mb-4">
-                              <Mail className="h-4 w-4" />
-                              <span>{entry.customerEmail}</span>
-                            </div>
-
-                            {suggestedTables.length > 0 && (
-                              <div className="mb-4">
-                                <p className="text-sm font-medium text-gray-700 mb-2">Suggested tables:</p>
-                                <div className="flex gap-2 flex-wrap">
-                                  {suggestedTables.map((table) => (
-                                    <button
-                                      key={table.id}
-                                      onClick={() => seatCustomer(entry.id, table.id)}
-                                      disabled={isSeating}
-                                      className="px-3 py-2 bg-emerald-100 text-emerald-800 rounded-lg text-sm font-medium hover:bg-emerald-200 disabled:opacity-50 transition-colors"
-                                    >
-                                      Table {table.tableNumber} ({table.seatCount} seats)
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="ml-6">
-                            <button
-                              onClick={() => seatCustomer(entry.id)}
-                              disabled={isSeating}
-                              className="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed transition-colors min-w-[140px]"
-                            >
-                              {isSeating ? 'Seating...' : 'Seat Now'}
-                            </button>
-                          </div>
+                return (
+                  <div
+                    key={entry.id}
+                    className={`bg-white border rounded-xl p-4 transition-all ${
+                      index === 0
+                        ? 'border-blue-200 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                          index === 0
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900">{entry.customerName}</div>
+                          <div className="text-sm text-gray-500">Party of {entry.partySize}</div>
                         </div>
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Table Management */}
-          <div className="bg-white rounded-xl shadow-sm border">
-            <div className="px-6 py-4 border-b flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-900">Table Layout</h2>
-              <div className="flex gap-4 text-sm">
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-green-500 rounded"></div>
-                  Available ({getTableStats().available})
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-red-500 rounded"></div>
-                  Occupied ({getTableStats().occupied})
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-3 h-3 bg-yellow-500 rounded"></div>
-                  Cleaning ({getTableStats().cleaning})
-                </span>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {tables.map((table) => {
-                  const isUpdating = actionInProgress === `table-${table.id}`
-
-                  return (
-                    <div
-                      key={table.id}
-                      className={`relative rounded-xl border-2 p-6 text-center transition-all duration-200 min-h-[200px] ${
-                        table.status === 'available' ? 'bg-green-50 border-green-200 hover:border-green-300' :
-                        table.status === 'occupied' ? 'bg-red-50 border-red-200' :
-                        table.status === 'cleaning' ? 'bg-yellow-50 border-yellow-200' :
-                        'bg-gray-50 border-gray-200'
-                      } ${isUpdating ? 'opacity-50 pointer-events-none' : 'hover:shadow-md'}`}
-                    >
-                      {/* Status indicator */}
-                      <div className={`absolute top-2 right-2 w-3 h-3 rounded-full ${
-                        table.status === 'available' ? 'bg-green-500' :
-                        table.status === 'occupied' ? 'bg-red-500' :
-                        table.status === 'cleaning' ? 'bg-yellow-500' :
-                        'bg-gray-400'
-                      }`}></div>
-
-                      {/* Table info */}
-                      <div className="mb-3">
-                        <div className="text-2xl mb-1">🍽️</div>
-                        <div className="font-bold text-xl text-gray-900">#{table.tableNumber}</div>
-                        <div className="text-sm text-gray-600">{table.seatCount} seats</div>
-                      </div>
-
-                      {/* Customer info for occupied tables */}
-                      {table.status === 'occupied' && table.currentCustomerName && (
-                        <div className="mb-3 p-2 bg-white rounded-lg border">
-                          <div className="font-semibold text-sm text-gray-900">{table.currentCustomerName}</div>
-                          <div className="text-xs text-gray-600">Party of {table.currentPartySize}</div>
-                          <div className="text-xs text-red-600 font-medium">{formatDuration(table.occupiedAt)} seated</div>
-                        </div>
-                      )}
-
-                      {/* Status message */}
-                      <div className={`text-xs font-semibold mb-3 py-1 px-2 rounded-full ${
-                        table.status === 'available' ? 'bg-green-100 text-green-700' :
-                        table.status === 'occupied' ? 'bg-red-100 text-red-700' :
-                        table.status === 'cleaning' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-gray-100 text-gray-700'
+                      <div className={`text-xs font-medium px-2 py-1 rounded ${
+                        waitTime > 30 ? 'bg-red-100 text-red-700' :
+                        waitTime > 15 ? 'bg-amber-100 text-amber-700' :
+                        'bg-green-100 text-green-700'
                       }`}>
-                        {table.status === 'occupied' ? 'OCCUPIED' :
-                         table.status === 'cleaning' ? 'CLEANING' :
-                         table.status === 'maintenance' ? 'MAINTENANCE' :
-                         'AVAILABLE'}
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="space-y-2">
-                        {table.status === 'occupied' && (
-                          <button
-                            onClick={() => updateTableStatus(table.id, 'available')}
-                            disabled={isUpdating}
-                            className="w-full py-2 px-3 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
-                          >
-                            {isUpdating ? 'Clearing...' : '✅ Customer Left'}
-                          </button>
-                        )}
-
-                        {table.status === 'cleaning' && (
-                          <button
-                            onClick={() => updateTableStatus(table.id, 'available')}
-                            disabled={isUpdating}
-                            className="w-full py-2 px-3 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
-                          >
-                            {isUpdating ? 'Setting Ready...' : '✨ Cleaned & Ready'}
-                          </button>
-                        )}
-
-                        {table.status === 'available' && (
-                          <div className="space-y-1">
-                            <button
-                              onClick={() => updateTableStatus(table.id, 'cleaning')}
-                              disabled={isUpdating}
-                              className="w-full py-1 px-2 bg-yellow-100 text-yellow-800 rounded text-xs font-medium hover:bg-yellow-200 disabled:opacity-50"
-                            >
-                              🧽 Needs Cleaning
-                            </button>
-                            <button
-                              onClick={() => updateTableStatus(table.id, 'maintenance')}
-                              disabled={isUpdating}
-                              className="w-full py-1 px-2 bg-gray-100 text-gray-800 rounded text-xs font-medium hover:bg-gray-200 disabled:opacity-50"
-                            >
-                              🔧 Maintenance
-                            </button>
-                          </div>
-                        )}
-
-                        {table.status === 'maintenance' && (
-                          <button
-                            onClick={() => updateTableStatus(table.id, 'available')}
-                            disabled={isUpdating}
-                            className="w-full py-2 px-3 bg-green-600 text-white rounded-lg text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors"
-                          >
-                            {isUpdating ? 'Fixing...' : '✅ Fixed & Ready'}
-                          </button>
-                        )}
+                        {waitTime}m
                       </div>
                     </div>
-                  )
-                })}
-              </div>
+
+                    {/* Suggested Tables */}
+                    {suggestedTables.length > 0 && (
+                      <div className="mb-3">
+                        <div className="text-xs text-gray-500 mb-2">Suggested tables:</div>
+                        <div className="flex gap-1 flex-wrap">
+                          {suggestedTables.slice(0, 3).map((table) => (
+                            <button
+                              key={table.id}
+                              onClick={() => seatCustomer(entry.id, table.id)}
+                              disabled={isSeating}
+                              className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 disabled:opacity-50 transition-colors"
+                            >
+                              {table.tableNumber}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Action Button */}
+                    <button
+                      onClick={() => seatCustomer(entry.id)}
+                      disabled={isSeating}
+                      className={`w-full py-2 px-3 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                        index === 0
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-600 text-white hover:bg-gray-700'
+                      }`}
+                    >
+                      {isSeating ? 'Seating...' : 'Seat Now'}
+                    </button>
+                  </div>
+                )
+              })}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
