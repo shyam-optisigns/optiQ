@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { MapPin, Phone, Clock, Users, Mail, ChevronRight } from 'lucide-react'
+import { MapPin, Phone } from 'lucide-react'
 
 interface Restaurant {
   id: string
@@ -111,7 +111,6 @@ export default function RestaurantPage() {
         {/* Clean Header */}
         <div className="bg-white rounded-2xl shadow-sm border mb-8">
           <div className="px-6 py-8 text-center">
-            <div className="text-4xl mb-4">🍽️</div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{restaurant?.name}</h1>
             <p className="text-gray-600">Join the digital queue</p>
           </div>
@@ -221,7 +220,6 @@ export default function RestaurantPage() {
         {/* Info Section */}
         <div className="mt-8 bg-blue-50 rounded-2xl p-6">
           <div className="text-center">
-            <div className="text-2xl mb-3">📧</div>
             <h3 className="font-semibold text-gray-900 mb-2">Email Notifications</h3>
             <p className="text-gray-600 text-sm">
               We'll send you email updates about your position and notify you when your table is ready.

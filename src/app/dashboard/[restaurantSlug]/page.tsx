@@ -43,10 +43,12 @@ export default function RestaurantDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
+  const [tablePositions, setTablePositions] = useState<{[key: string]: {x: number, y: number}}>({})
 
   useEffect(() => {
     if (restaurantSlug) {
       fetchData()
+      fetchLayout()
 
       // Real-time updates every 30 seconds (much more reasonable)
       const interval = setInterval(fetchData, 30000)
@@ -82,6 +84,34 @@ export default function RestaurantDashboard() {
       setError('Failed to load dashboard data')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchLayout = async () => {
+    try {
+      const response = await fetch(`/api/dashboard/${restaurantSlug}/layout`)
+      if (response.ok) {
+        const data = await response.json()
+        setTablePositions(data.tablePositions || {})
+      }
+    } catch (err) {
+      console.error('Failed to load layout:', err)
+    }
+  }
+
+  const saveLayout = async (positions: {[key: string]: {x: number, y: number}}) => {
+    try {
+      const response = await fetch(`/api/dashboard/${restaurantSlug}/layout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tablePositions: positions })
+      })
+
+      if (!response.ok) {
+        console.error('Failed to save layout')
+      }
+    } catch (err) {
+      console.error('Failed to save layout:', err)
     }
   }
 
@@ -162,15 +192,6 @@ export default function RestaurantDashboard() {
     return { available, occupied, cleaning, maintenance, total: tables.length }
   }
 
-  const getTableTypeIcon = (tableType: string) => {
-    switch (tableType) {
-      case 'booth': return '🛋️'
-      case 'bar': return '🍺'
-      case 'patio': return '🌞'
-      case 'regular':
-      default: return '🍽️'
-    }
-  }
 
 
   const formatDuration = (timestamp: string | undefined) => {
@@ -239,15 +260,68 @@ export default function RestaurantDashboard() {
 
       {/* Clean Restaurant Floor Layout */}
       <div className="absolute inset-0 pt-20 bg-gray-50" style={{ right: '416px' }}>
-        <div className="h-full w-full p-8 overflow-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+        <div className="h-full w-full p-4 overflow-auto relative">
+          {/* Clean canvas for draggable tables */}
+          <div className="relative w-full h-full min-h-[800px]">
             {tables.map((table, index) => {
               const isUpdating = actionInProgress === `table-${table.id}`
+
+              // Get position from state or initialize with grid layout
+              const position = tablePositions[table.id] || (() => {
+                const row = Math.floor(index / 6)
+                const col = index % 6
+                const initialPos = {
+                  x: 20 + col * 160,
+                  y: 20 + row * 140
+                }
+                // Initialize position in state
+                setTablePositions(prev => ({
+                  ...prev,
+                  [table.id]: initialPos
+                }))
+                return initialPos
+              })()
+
+              const handleMouseDown = (e: React.MouseEvent) => {
+                const startX = e.clientX - position.x
+                const startY = e.clientY - position.y
+                let finalPosition = { x: position.x, y: position.y }
+
+                const handleMouseMove = (e: MouseEvent) => {
+                  const newX = Math.max(0, e.clientX - startX)
+                  const newY = Math.max(0, e.clientY - startY)
+                  finalPosition = { x: newX, y: newY }
+
+                  setTablePositions(prev => ({
+                    ...prev,
+                    [table.id]: finalPosition
+                  }))
+                }
+
+                const handleMouseUp = () => {
+                  document.removeEventListener('mousemove', handleMouseMove)
+                  document.removeEventListener('mouseup', handleMouseUp)
+
+                  // Save layout after drag is complete with the final position
+                  setTablePositions(prev => {
+                    const updatedPositions = {
+                      ...prev,
+                      [table.id]: finalPosition
+                    }
+                    saveLayout(updatedPositions)
+                    return updatedPositions
+                  })
+                }
+
+                document.addEventListener('mousemove', handleMouseMove)
+                document.addEventListener('mouseup', handleMouseUp)
+              }
 
               return (
                 <div
                   key={table.id}
-                  className={`relative bg-white rounded-2xl shadow-sm border transition-all duration-200 hover:shadow-md ${
+                  onMouseDown={handleMouseDown}
+                  className={`absolute bg-white rounded-2xl shadow-sm border hover:shadow-md cursor-move select-none ${
                     table.status === 'available'
                       ? 'border-green-200 hover:border-green-300' :
                     table.status === 'occupied'
@@ -257,73 +331,60 @@ export default function RestaurantDashboard() {
                     'border-gray-200 hover:border-gray-300'
                   } ${isUpdating ? 'opacity-60' : ''}`}
                   style={{
-                    minHeight: '200px',
-                    height: '200px'
+                    left: `${position.x}px`,
+                    top: `${position.y}px`,
+                    width: '180px',
+                    height: '160px'
                   }}
                 >
-                  {/* Status Dot */}
-                  <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${
-                    table.status === 'available' ? 'bg-green-500' :
-                    table.status === 'occupied' ? 'bg-red-500' :
-                    table.status === 'cleaning' ? 'bg-amber-500' :
-                    'bg-gray-400'
-                  }`}></div>
 
-                  {/* Floating Action Button */}
-                  {(table.status === 'occupied' || table.status === 'cleaning') && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        updateTableStatus(table.id, 'available')
-                      }}
-                      disabled={isUpdating}
-                      className={`absolute bottom-3 right-3 w-8 h-8 rounded-full shadow-lg transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed ${
-                        table.status === 'occupied'
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-green-600 hover:bg-green-700'
-                      }`}
-                      title={table.status === 'occupied' ? 'Customer Left' : 'Ready'}
-                    >
-                      <div className="text-white text-sm">
-                        {isUpdating ? '...' : table.status === 'occupied' ? '✓' : '✨'}
-                      </div>
-                    </button>
-                  )}
+                  {/* Floating Action Buttons */}
+                  <div className="absolute bottom-3 right-3 flex gap-2">
+                    {table.status === 'occupied' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          updateTableStatus(table.id, 'cleaning')
+                        }}
+                        disabled={isUpdating}
+                        className="w-8 h-8 rounded-full shadow-lg transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 hover:bg-green-700"
+                        title="Customer Left"
+                      >
+                        <div className="text-white text-sm">✓</div>
+                      </button>
+                    )}
 
-                  <div className="p-4 text-center h-full flex flex-col">
-                    {/* Table Icon */}
-                    <div className="mb-3">
-                      <div className="text-3xl mb-2">
-                        {getTableTypeIcon(table.tableType)}
-                      </div>
-                      <div className="font-semibold text-xl text-gray-900">
-                        {table.tableNumber}
-                      </div>
-                      <div className="text-sm text-gray-500 font-medium">
-                        {table.seatCount} seats • {table.tableType}
+                    {table.status === 'cleaning' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          updateTableStatus(table.id, 'available')
+                        }}
+                        disabled={isUpdating}
+                        className="w-8 h-8 rounded-full shadow-lg transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed bg-amber-600 hover:bg-amber-700"
+                        title="Cleaned - Ready"
+                      >
+                        <div className="text-white text-xs">🧽</div>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="p-3 text-center h-full flex flex-col overflow-hidden">
+                    {/* Table Type Pill */}
+                    <div className="absolute top-2 left-2">
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        table.tableType === 'booth' ? 'bg-purple-100 text-purple-800' :
+                        table.tableType === 'bar' ? 'bg-orange-100 text-orange-800' :
+                        table.tableType === 'patio' ? 'bg-green-100 text-green-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {table.tableType}
                       </div>
                     </div>
 
-                    {/* Customer Info Pills */}
-                    {table.status === 'occupied' && table.currentCustomerName && (
-                      <div className="mb-3 space-y-2">
-                        <div className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                          👤 {table.currentCustomerName}
-                        </div>
-                        <div className="flex justify-center gap-2">
-                          <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                            👥 {table.currentPartySize}
-                          </div>
-                          <div className="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                            ⏱️ {formatDuration(table.occupiedAt)}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Status Badge */}
-                    <div className="mt-auto">
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                    {/* Availability Pill */}
+                    <div className="absolute top-2 right-2">
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                         table.status === 'available'
                           ? 'bg-green-100 text-green-800' :
                         table.status === 'occupied'
@@ -338,6 +399,34 @@ export default function RestaurantDashboard() {
                          'Maintenance'}
                       </div>
                     </div>
+
+                    {/* Table Info */}
+                    <div className="mb-2 mt-6">
+                      <div className="font-bold text-xl text-gray-900 mb-1">
+                        {table.tableNumber}
+                      </div>
+                      <div className="text-xs text-gray-500 font-medium">
+                        {table.seatCount} seats
+                      </div>
+                    </div>
+
+                    {/* Customer Info Pills */}
+                    {table.status === 'occupied' && table.currentCustomerName && (
+                      <div className="mb-2 space-y-1 flex-1">
+                        <div className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold truncate max-w-full">
+                          👤 {table.currentCustomerName}
+                        </div>
+                        <div className="flex justify-center gap-1">
+                          <div className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
+                            👥 {table.currentPartySize}
+                          </div>
+                          <div className="inline-flex items-center px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                            ⏱️ {formatDuration(table.occupiedAt)}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                   </div>
                 </div>
               )
