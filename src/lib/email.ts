@@ -1,4 +1,4 @@
-import * as nodemailer from 'nodemailer'
+import { Resend } from 'resend'
 
 export interface EmailMessage {
   to: string
@@ -6,58 +6,28 @@ export interface EmailMessage {
   html: string
 }
 
-// Create reusable transporter
-const createTransporter = () => {
-  // For localhost testing, use Gmail (easier setup) or any SMTP
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD // App password, not regular password
-      }
-    })
-  }
-
-  // Fallback: Ethereal Email for testing (creates fake inbox)
-  return null
-}
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function sendEmail({ to, subject, html }: EmailMessage): Promise<boolean> {
   try {
-    let transporter = createTransporter()
-
-    // If no real email configured, use Ethereal for testing
-    if (!transporter) {
-      const testAccount = await nodemailer.createTestAccount()
-
-      transporter = nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
-      })
-
-      console.log('📧 Using Ethereal Email for testing')
+    if (!process.env.RESEND_API_KEY) {
+      console.log('📧 No Resend API key found, skipping email send')
+      return false
     }
 
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || 'noreply@restaurant-queue.com',
-      to,
+    const { data, error } = await resend.emails.send({
+      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com', // Must be from verified domain
+      to: [to],
       subject,
-      html
+      html,
     })
 
-    console.log(`✅ Email sent to ${to}`)
-
-    // If using Ethereal, show preview link
-    if (info.messageId && !process.env.EMAIL_USER) {
-      console.log('📧 Preview email: ' + nodemailer.getTestMessageUrl(info))
+    if (error) {
+      console.error('❌ Resend error:', error)
+      return false
     }
 
+    console.log(`✅ Email sent to ${to} (ID: ${data?.id})`)
     return true
   } catch (error) {
     console.error('❌ Failed to send email:', error)
