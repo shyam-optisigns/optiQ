@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { updateDocument, COLLECTIONS } from '@/lib/firestore'
+import { getCollectionWhere, getDocument, updateDocument, COLLECTIONS } from '@/lib/firestore'
 import { z } from 'zod'
 
 const updateTableSchema = z.object({
@@ -16,29 +16,28 @@ export async function PATCH(
     const { status } = updateTableSchema.parse(body)
 
     // Verify restaurant exists and get ID
-    const restaurant = await db.restaurant.findUnique({
-      where: { slug: restaurantSlug },
-      select: { id: true }
-    })
+    const restaurants = await getCollectionWhere(
+      COLLECTIONS.RESTAURANTS,
+      'slug',
+      '==',
+      restaurantSlug
+    )
 
-    if (!restaurant) {
+    if (restaurants.length === 0) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    // Verify table belongs to restaurant
-    const existingTable = await db.table.findFirst({
-      where: {
-        id: tableId,
-        restaurantId: restaurant.id
-      }
-    })
+    const restaurant = restaurants[0] as any
 
-    if (!existingTable) {
+    // Verify table belongs to restaurant
+    const existingTable = await getDocument(COLLECTIONS.TABLES, tableId) as any
+
+    if (!existingTable || existingTable.restaurantId !== restaurant.id) {
       return NextResponse.json({ error: 'Table not found' }, { status: 404 })
     }
 
     // Update table status
-    const updateData: any = { status }
+    const updateData: Record<string, any> = { status }
 
     // Clear occupancy data when table becomes available
     if (status === 'available') {
@@ -52,10 +51,10 @@ export async function PATCH(
       // Keep the occupancy data for cleaning
     }
 
-    const updatedTable = await db.table.update({
-      where: { id: tableId },
-      data: updateData
-    })
+    await updateDocument(COLLECTIONS.TABLES, tableId, updateData)
+
+    // Get updated table data
+    const updatedTable = await getDocument(COLLECTIONS.TABLES, tableId)
 
     return NextResponse.json({
       success: true,
