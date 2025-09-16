@@ -13,8 +13,6 @@ import {
   onSnapshot,
   serverTimestamp,
   Timestamp,
-  DocumentData,
-  QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
 

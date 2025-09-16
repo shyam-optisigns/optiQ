@@ -31,10 +31,6 @@ export default function RestaurantPage() {
 
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => {
-    fetchRestaurant()
-  }, [slug])
-
   const fetchRestaurant = async () => {
     try {
       const response = await fetch(`/api/restaurants/${slug}`)
@@ -44,12 +40,16 @@ export default function RestaurantPage() {
       } else {
         setError('Restaurant not found')
       }
-    } catch (err) {
+    } catch (error) {
       setError('Failed to load restaurant')
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchRestaurant()
+  }, [slug])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,7 +73,7 @@ export default function RestaurantPage() {
       } else {
         setError(data.error || 'Failed to join queue')
       }
-    } catch (err) {
+    } catch (error) {
       setError('Network error. Please try again.')
     } finally {
       setSubmitting(false)
@@ -178,7 +178,7 @@ export default function RestaurantPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white"
                   placeholder="your@email.com"
                 />
-                <p className="text-xs text-gray-500 mt-1">We'll email you updates about your queue position</p>
+                <p className="text-xs text-gray-500 mt-1">We&apos;ll email you updates about your queue position</p>
               </div>
 
               <div>
@@ -222,7 +222,7 @@ export default function RestaurantPage() {
           <div className="text-center">
             <h3 className="font-semibold text-gray-900 mb-2">Email Notifications</h3>
             <p className="text-gray-600 text-sm">
-              We'll send you email updates about your position and notify you when your table is ready.
+              We&apos;ll send you email updates about your position and notify you when your table is ready.
             </p>
           </div>
         </div>

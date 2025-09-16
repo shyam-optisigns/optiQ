@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Clock, Users, CheckCircle, XCircle, AlertTriangle, Utensils, Mail, Phone } from 'lucide-react'
+import { Clock, Users, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 
 interface QueueEntry {
   id: string
@@ -54,7 +54,7 @@ export default function RestaurantDashboard() {
       const interval = setInterval(fetchData, 30000)
       return () => clearInterval(interval)
     }
-  }, [restaurantSlug])
+  }, [restaurantSlug]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchData = async () => {
     try {
@@ -80,7 +80,7 @@ export default function RestaurantDashboard() {
       }
 
       setError('')
-    } catch (err) {
+    } catch (error) {
       setError('Failed to load dashboard data')
     } finally {
       setLoading(false)
@@ -94,7 +94,7 @@ export default function RestaurantDashboard() {
         const data = await response.json()
         setTablePositions(data.tablePositions || {})
       }
-    } catch (err) {
+    } catch (error) {
       console.error('Failed to load layout:', err)
     }
   }
@@ -110,7 +110,7 @@ export default function RestaurantDashboard() {
       if (!response.ok) {
         console.error('Failed to save layout')
       }
-    } catch (err) {
+    } catch (error) {
       console.error('Failed to save layout:', err)
     }
   }
@@ -134,7 +134,7 @@ export default function RestaurantDashboard() {
       } else {
         alert(`❌ Error: ${data.error || 'Failed to seat customer'}`)
       }
-    } catch (err) {
+    } catch (error) {
       alert('❌ Network error')
     } finally {
       setActionInProgress(null)
@@ -165,7 +165,7 @@ export default function RestaurantDashboard() {
       } else {
         alert('❌ Failed to update table status')
       }
-    } catch (err) {
+    } catch (error) {
       alert('❌ Network error')
     } finally {
       setActionInProgress(null)

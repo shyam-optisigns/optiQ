@@ -44,7 +44,7 @@ export default function QueueStatusPage() {
         } else {
           setError(data.error || 'Failed to load queue status')
         }
-      } catch (err) {
+      } catch (error) {
         setError('Network error')
       } finally {
         setLoading(false)
