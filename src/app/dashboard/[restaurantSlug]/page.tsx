@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { Clock, Users, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
+import { Clock, Users, CheckCircle, XCircle, AlertTriangle, Plus } from 'lucide-react'
 
 interface QueueEntry {
   id: string
@@ -44,6 +44,12 @@ export default function RestaurantDashboard() {
   const [error, setError] = useState('')
   const [actionInProgress, setActionInProgress] = useState<string | null>(null)
   const [tablePositions, setTablePositions] = useState<{[key: string]: {x: number, y: number}}>({})
+  const [showAddTableModal, setShowAddTableModal] = useState(false)
+  const [newTableForm, setNewTableForm] = useState({
+    tableNumber: '',
+    seatCount: 4,
+    tableType: 'regular' as 'regular' | 'booth' | 'bar' | 'outdoor'
+  })
 
   useEffect(() => {
     if (restaurantSlug) {
@@ -172,6 +178,42 @@ export default function RestaurantDashboard() {
     }
   }
 
+  const addTable = async () => {
+    if (!restaurant || !newTableForm.tableNumber.trim()) return
+
+    setActionInProgress('add-table')
+
+    try {
+      const response = await fetch(`/api/dashboard/${restaurantSlug}/tables`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          restaurantId: restaurant.id,
+          tableNumber: newTableForm.tableNumber,
+          seatCount: newTableForm.seatCount,
+          tableType: newTableForm.tableType
+        })
+      })
+
+      if (response.ok) {
+        await fetchData() // Refresh data
+        setShowAddTableModal(false)
+        setNewTableForm({
+          tableNumber: '',
+          seatCount: 4,
+          tableType: 'regular'
+        })
+      } else {
+        const data = await response.json()
+        alert(`❌ Error: ${data.error || 'Failed to add table'}`)
+      }
+    } catch (error) {
+      alert('❌ Network error')
+    } finally {
+      setActionInProgress(null)
+    }
+  }
+
   const getSuggestedTables = (partySize: number): Table[] => {
     return tables
       .filter(table => table.status === 'available' && table.seatCount >= partySize)
@@ -269,6 +311,15 @@ export default function RestaurantDashboard() {
                   <span className="font-medium">{stats.cleaning} Cleaning</span>
                 </span>
               </div>
+            </div>
+            <div>
+              <button
+                onClick={() => setShowAddTableModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                Add Table
+              </button>
             </div>
           </div>
         </div>
@@ -568,6 +619,102 @@ export default function RestaurantDashboard() {
           )}
         </div>
       </div>
+
+      {/* Add Table Modal */}
+      {showAddTableModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Add New Table</h2>
+              <button
+                onClick={() => setShowAddTableModal(false)}
+                className="text-gray-400 hover:text-gray-600 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={(e) => { e.preventDefault(); addTable(); }} className="space-y-4">
+              {/* Table Number */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Table Number
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newTableForm.tableNumber}
+                  onChange={(e) => setNewTableForm(prev => ({ ...prev, tableNumber: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="e.g., 1, A1, Patio-2"
+                />
+              </div>
+
+              {/* Seat Count */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Seat Count
+                </label>
+                <select
+                  value={newTableForm.seatCount}
+                  onChange={(e) => setNewTableForm(prev => ({ ...prev, seatCount: parseInt(e.target.value) }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  {[2, 4, 6, 8, 10, 12].map(count => (
+                    <option key={count} value={count}>{count} seats</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Table Type Pills */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Table Type
+                </label>
+                <div className="flex gap-2 flex-wrap">
+                  {[
+                    { value: 'regular', label: 'Regular', color: 'bg-gray-100 text-gray-800' },
+                    { value: 'booth', label: 'Booth', color: 'bg-purple-100 text-purple-800' },
+                    { value: 'bar', label: 'Bar', color: 'bg-orange-100 text-orange-800' },
+                    { value: 'outdoor', label: 'Outdoor', color: 'bg-green-100 text-green-800' }
+                  ].map(type => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setNewTableForm(prev => ({ ...prev, tableType: type.value as any }))}
+                      className={`px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+                        newTableForm.tableType === type.value
+                          ? 'bg-blue-600 text-white'
+                          : `${type.color} hover:opacity-80`
+                      }`}
+                    >
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowAddTableModal(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={actionInProgress === 'add-table'}
+                  className="flex-1 py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {actionInProgress === 'add-table' ? 'Adding...' : 'Add Table'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
