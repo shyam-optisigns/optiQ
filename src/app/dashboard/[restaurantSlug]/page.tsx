@@ -194,9 +194,25 @@ export default function RestaurantDashboard() {
 
 
 
-  const formatDuration = (timestamp: string | undefined) => {
+  const formatDuration = (timestamp: any) => {
     if (!timestamp) return ''
-    const minutes = Math.floor((Date.now() - new Date(timestamp).getTime()) / (1000 * 60))
+
+    // Handle Firebase Timestamp objects
+    let dateTime: number
+    if (timestamp.seconds) {
+      // Firebase Timestamp object
+      dateTime = timestamp.seconds * 1000
+    } else if (typeof timestamp === 'string') {
+      // String timestamp
+      dateTime = new Date(timestamp).getTime()
+    } else {
+      // Already a number (milliseconds)
+      dateTime = timestamp
+    }
+
+    if (isNaN(dateTime)) return ''
+
+    const minutes = Math.floor((Date.now() - dateTime) / (1000 * 60))
     if (minutes < 60) return `${minutes}m`
     const hours = Math.floor(minutes / 60)
     const remainingMinutes = minutes % 60
