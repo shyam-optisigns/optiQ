@@ -67,7 +67,7 @@ export const emailTemplates = {
           </div>
 
           <div style="text-align: center; margin: 25px 0;">
-            <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/queue/${queueId}"
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/queue/${queueId}"
                style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
               📱 Check Your Status
             </a>
@@ -109,7 +109,7 @@ export const emailTemplates = {
             </div>
 
             <div style="text-align: center; margin: 25px 0;">
-              <a href="${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/queue/${queueId}"
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/queue/${queueId}"
                  style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                 📱 View Your Status
               </a>
