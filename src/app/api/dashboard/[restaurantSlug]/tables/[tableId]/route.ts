@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getCollectionWhere, updateDocument, COLLECTIONS } from '@/lib/firestore'
 import { z } from 'zod'
 
 const updateTableSchema = z.object({

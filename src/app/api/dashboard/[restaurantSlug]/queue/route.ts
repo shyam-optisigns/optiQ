@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getCollectionWhere, COLLECTIONS } from '@/lib/firestore'
 
 export async function GET(
   _request: NextRequest,
@@ -8,31 +8,42 @@ export async function GET(
   try {
     const { restaurantSlug } = await params
 
-    const restaurant = await db.restaurant.findUnique({
-      where: { slug: restaurantSlug },
-      select: { id: true }
-    })
+    const restaurants = await getCollectionWhere(
+      COLLECTIONS.RESTAURANTS,
+      'slug',
+      '==',
+      restaurantSlug
+    )
 
-    if (!restaurant) {
+    if (restaurants.length === 0) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    const queueEntries = await db.queueEntry.findMany({
-      where: {
-        restaurantId: restaurant.id,
-        status: { in: ['waiting', 'called'] }
-      },
-      orderBy: { createdAt: 'asc' },
-      select: {
-        id: true,
-        customerName: true,
-        customerEmail: true,
-        partySize: true,
-        estimatedWaitMinutes: true,
-        status: true,
-        createdAt: true
-      }
-    })
+    const restaurant = restaurants[0]
+
+    const allQueueEntries = await getCollectionWhere(
+      COLLECTIONS.QUEUE_ENTRIES,
+      'restaurantId',
+      '==',
+      restaurant.id
+    )
+
+    // Filter for waiting and called status, sort by createdAt
+    const queueEntries = allQueueEntries
+      .filter((entry: any) => ['waiting', 'called'].includes(entry.status))
+      .sort((a: any, b: any) => {
+        if (!a.createdAt || !b.createdAt) return 0
+        return a.createdAt.seconds - b.createdAt.seconds
+      })
+      .map((entry: any) => ({
+        id: entry.id,
+        customerName: entry.customerName,
+        customerEmail: entry.customerEmail,
+        partySize: entry.partySize,
+        estimatedWaitMinutes: entry.estimatedWaitMinutes,
+        status: entry.status,
+        createdAt: entry.createdAt
+      }))
 
     return NextResponse.json(queueEntries)
 

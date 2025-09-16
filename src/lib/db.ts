@@ -1,9 +1,18 @@
-import { PrismaClient } from '@prisma/client'
+// Temporary stub file to prevent build errors
+// TODO: Remove this file after all API routes are migrated to Firebase
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
-
-export const db = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+export const db = {
+  restaurant: {
+    findUnique: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+    update: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+  },
+  table: {
+    findFirst: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+    update: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+  },
+  queueEntry: {
+    findUnique: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+    update: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+    create: () => { throw new Error('Prisma DB removed - use Firebase instead') },
+  }
+};

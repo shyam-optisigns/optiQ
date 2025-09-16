@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getCollectionWhere, updateDocument, COLLECTIONS } from '@/lib/firestore'
 import { z } from 'zod'
 
 const saveLayoutSchema = z.object({
@@ -25,16 +25,19 @@ export async function POST(
     const { tablePositions } = validation.data
 
     // Get restaurant
-    const restaurant = await db.restaurant.findUnique({
-      where: { slug: restaurantSlug },
-      select: { id: true, settings: true }
-    })
+    const restaurants = await getCollectionWhere(
+      COLLECTIONS.RESTAURANTS,
+      'slug',
+      '==',
+      restaurantSlug
+    )
 
-    if (!restaurant) {
+    if (restaurants.length === 0) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    const currentSettings = (restaurant.settings as any) || {}
+    const restaurant = restaurants[0] as any
+    const currentSettings = restaurant.settings || {}
 
     // Save layout to restaurant settings
     const newSettings = {
@@ -42,11 +45,8 @@ export async function POST(
       tableLayout: tablePositions
     }
 
-    await db.restaurant.update({
-      where: { id: restaurant.id },
-      data: {
-        settings: newSettings
-      }
+    await updateDocument(COLLECTIONS.RESTAURANTS, restaurant.id, {
+      settings: newSettings
     })
 
     return NextResponse.json({ success: true })
@@ -65,16 +65,19 @@ export async function GET(
     const { restaurantSlug } = await params
 
     // Get restaurant layout
-    const restaurant = await db.restaurant.findUnique({
-      where: { slug: restaurantSlug },
-      select: { settings: true }
-    })
+    const restaurants = await getCollectionWhere(
+      COLLECTIONS.RESTAURANTS,
+      'slug',
+      '==',
+      restaurantSlug
+    )
 
-    if (!restaurant) {
+    if (restaurants.length === 0) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    const settings = restaurant.settings as any
+    const restaurant = restaurants[0] as any
+    const settings = restaurant.settings
     const tableLayout = settings?.tableLayout || {}
 
     return NextResponse.json({ tablePositions: tableLayout })

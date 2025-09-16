@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { getCollectionWhere, createDocument, getDocument, updateDocument, COLLECTIONS } from '@/lib/firestore'
 import { sendEmail, emailTemplates } from '@/lib/email'
 import { z } from 'zod'
 
@@ -11,36 +11,36 @@ const joinQueueSchema = z.object({
 })
 
 async function estimateWaitTime(restaurantId: string, partySize: number): Promise<number> {
-  const [queueCount, restaurant, historicalData] = await Promise.all([
-    db.queueEntry.count({
-      where: {
-        restaurantId,
-        status: 'waiting'
-      }
-    }),
-    db.restaurant.findUnique({
-      where: { id: restaurantId },
-      select: { avgServiceTimeMinutes: true }
-    }),
-    db.queueHistory.aggregate({
-      where: {
-        restaurantId,
-        partySize,
-        createdAt: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // Last 30 days
-        }
-      },
-      _avg: {
-        actualWaitMinutes: true
-      }
-    })
+  const [waitingEntries, restaurant] = await Promise.all([
+    getCollectionWhere(COLLECTIONS.QUEUE_ENTRIES, 'restaurantId', '==', restaurantId),
+    getDocument(COLLECTIONS.RESTAURANTS, restaurantId)
   ])
 
-  const baseTime = queueCount * (restaurant?.avgServiceTimeMinutes || 45)
-  const historicalAvg = historicalData._avg.actualWaitMinutes || baseTime
+  // Filter for waiting status
+  const queueCount = waitingEntries.filter((entry: any) => entry.status === 'waiting').length
 
-  // Simple weighted average - can be enhanced later
-  const estimatedWait = Math.round((baseTime * 0.4) + (historicalAvg * 0.6))
+  // Get historical data (simplified for Firebase - could be enhanced with queries)
+  const historicalEntries = await getCollectionWhere(
+    COLLECTIONS.QUEUE_HISTORY,
+    'restaurantId',
+    '==',
+    restaurantId
+  )
+
+  const recentHistoricalEntries = historicalEntries.filter((entry: any) =>
+    entry.partySize === partySize &&
+    entry.createdAt &&
+    entry.createdAt.seconds > (Date.now() / 1000 - 30 * 24 * 60 * 60) // Last 30 days
+  )
+
+  const historicalAvg = recentHistoricalEntries.length > 0
+    ? recentHistoricalEntries.reduce((sum: number, entry: any) => sum + entry.actualWaitMinutes, 0) / recentHistoricalEntries.length
+    : 0
+
+  const baseTime = queueCount * ((restaurant as any)?.avgServiceTimeMinutes || 45)
+  const estimatedWait = historicalAvg > 0
+    ? Math.round((baseTime * 0.4) + (historicalAvg * 0.6))
+    : baseTime
 
   return Math.max(estimatedWait, 5) // Minimum 5 minutes
 }
@@ -51,20 +51,20 @@ export async function POST(request: NextRequest) {
     const { restaurantSlug, customerName, customerEmail, partySize } = joinQueueSchema.parse(body)
 
     // Find restaurant
-    const restaurant = await db.restaurant.findUnique({
-      where: { slug: restaurantSlug },
-      select: {
-        id: true,
-        name: true,
-        settings: true
-      }
-    })
+    const restaurants = await getCollectionWhere(
+      COLLECTIONS.RESTAURANTS,
+      'slug',
+      '==',
+      restaurantSlug
+    )
 
-    if (!restaurant) {
+    if (restaurants.length === 0) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    const settings = restaurant.settings as any || {}
+    const restaurant = restaurants[0] as any
+
+    const settings = restaurant.settings || {}
     if (partySize > (settings.maxPartySize || 12)) {
       return NextResponse.json({
         error: `Party size too large. Maximum: ${settings.maxPartySize || 12}`
@@ -72,22 +72,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate recent entry
-    const existingEntry = await db.queueEntry.findFirst({
-      where: {
-        restaurantId: restaurant.id,
-        customerEmail,
-        status: { in: ['waiting', 'called'] },
-        createdAt: {
-          gte: new Date(Date.now() - 2 * 60 * 60 * 1000) // Last 2 hours
-        }
-      }
-    })
+    const existingEntries = await getCollectionWhere(
+      COLLECTIONS.QUEUE_ENTRIES,
+      'restaurantId',
+      '==',
+      restaurant.id
+    )
 
-    if (existingEntry) {
+    const recentEntry = existingEntries.find((entry: any) =>
+      entry.customerEmail === customerEmail &&
+      ['waiting', 'called'].includes(entry.status) &&
+      entry.createdAt &&
+      entry.createdAt.seconds > (Date.now() / 1000 - 2 * 60 * 60) // Last 2 hours
+    )
+
+    if (recentEntry) {
+      const position = await getQueuePosition(recentEntry.id)
       return NextResponse.json({
-        queueId: existingEntry.id,
-        position: await getQueuePosition(existingEntry.id),
-        estimatedWaitMinutes: existingEntry.estimatedWaitMinutes,
+        queueId: recentEntry.id,
+        position,
+        estimatedWaitMinutes: recentEntry.estimatedWaitMinutes,
         message: 'You are already in the queue'
       })
     }
@@ -96,21 +100,21 @@ export async function POST(request: NextRequest) {
     const estimatedWaitMinutes = await estimateWaitTime(restaurant.id, partySize)
 
     // Create queue entry
-    const queueEntry = await db.queueEntry.create({
-      data: {
-        restaurantId: restaurant.id,
-        customerName,
-        customerEmail,
-        partySize,
-        estimatedWaitMinutes,
-        status: 'waiting'
-      }
+    const queueEntryId = await createDocument(COLLECTIONS.QUEUE_ENTRIES, {
+      restaurantId: restaurant.id,
+      customerName,
+      customerEmail,
+      partySize,
+      estimatedWaitMinutes,
+      status: 'waiting',
+      priorityScore: 0,
+      notificationPreference: 'email'
     })
 
-    const position = await getQueuePosition(queueEntry.id)
+    const position = await getQueuePosition(queueEntryId)
 
     // Send welcome email
-    const emailContent = emailTemplates.queueJoined(restaurant.name, customerName, position, estimatedWaitMinutes, queueEntry.id)
+    const emailContent = emailTemplates.queueJoined(restaurant.name, customerName, position, estimatedWaitMinutes, queueEntryId)
     await sendEmail({
       to: customerEmail,
       subject: emailContent.subject,
@@ -118,13 +122,12 @@ export async function POST(request: NextRequest) {
     })
 
     // Update last notification sent time
-    await db.queueEntry.update({
-      where: { id: queueEntry.id },
-      data: { lastNotificationSent: new Date() }
+    await updateDocument(COLLECTIONS.QUEUE_ENTRIES, queueEntryId, {
+      lastNotificationSent: new Date()
     })
 
     return NextResponse.json({
-      queueId: queueEntry.id,
+      queueId: queueEntryId,
       position,
       estimatedWaitMinutes,
       restaurantName: restaurant.name,
@@ -142,20 +145,27 @@ export async function POST(request: NextRequest) {
 }
 
 async function getQueuePosition(queueId: string): Promise<number> {
-  const entry = await db.queueEntry.findUnique({
-    where: { id: queueId },
-    select: { createdAt: true, restaurantId: true }
-  })
+  const entry = await getDocument(COLLECTIONS.QUEUE_ENTRIES, queueId)
 
   if (!entry) return 0
 
-  const position = await db.queueEntry.count({
-    where: {
-      restaurantId: entry.restaurantId,
-      status: 'waiting',
-      createdAt: { lte: entry.createdAt }
-    }
-  })
+  const queueEntries = await getCollectionWhere(
+    COLLECTIONS.QUEUE_ENTRIES,
+    'restaurantId',
+    '==',
+    (entry as any).restaurantId
+  )
 
-  return position
+  // Filter and sort waiting entries created before or at the same time as this entry
+  const waitingEntries = queueEntries
+    .filter((qEntry: any) =>
+      qEntry.status === 'waiting' &&
+      qEntry.createdAt &&
+      qEntry.createdAt.seconds <= (entry as any).createdAt.seconds
+    )
+    .sort((a: any, b: any) => a.createdAt.seconds - b.createdAt.seconds)
+
+  const position = waitingEntries.findIndex((qEntry: any) => qEntry.id === queueId) + 1
+
+  return Math.max(position, 1)
 }
