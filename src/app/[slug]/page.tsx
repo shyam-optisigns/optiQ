@@ -57,13 +57,16 @@ export default function RestaurantPage() {
     setError('')
 
     try {
+      const requestData = {
+        restaurantSlug: slug,
+        ...formData
+      }
+      console.log('Sending queue join request:', requestData)
+
       const response = await fetch('/api/queue/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          restaurantSlug: slug,
-          ...formData
-        })
+        body: JSON.stringify(requestData)
       })
 
       const data = await response.json()

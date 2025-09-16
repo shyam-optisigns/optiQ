@@ -79,6 +79,12 @@ export async function POST(
 
     // Mark table as occupied if we have a table
     if (table) {
+      console.log('Seating customer:', {
+        customerName: queueEntry.customerName,
+        partySize: queueEntry.partySize,
+        tableId: table.id
+      })
+
       await updateDocument(COLLECTIONS.TABLES, table.id, {
         status: 'occupied',
         occupiedAt: serverTimestamp(),

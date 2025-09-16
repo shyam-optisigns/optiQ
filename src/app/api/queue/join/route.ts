@@ -48,7 +48,9 @@ async function estimateWaitTime(restaurantId: string, partySize: number): Promis
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('Queue join request body:', body)
     const { restaurantSlug, customerName, customerEmail, partySize } = joinQueueSchema.parse(body)
+    console.log('Parsed queue data:', { restaurantSlug, customerName, customerEmail, partySize })
 
     // Find restaurant
     const restaurants = await getCollectionWhere(
