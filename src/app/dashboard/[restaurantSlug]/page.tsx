@@ -50,8 +50,8 @@ export default function RestaurantDashboard() {
       fetchData()
       fetchLayout()
 
-      // Real-time updates every 30 seconds (much more reasonable)
-      const interval = setInterval(fetchData, 30000)
+      // Real-time updates every 10 seconds for better responsiveness
+      const interval = setInterval(fetchData, 10000)
       return () => clearInterval(interval)
     }
   }, [restaurantSlug]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -479,7 +479,24 @@ export default function RestaurantDashboard() {
               {waitingQueue.map((entry, index) => {
                 const isSeating = actionInProgress === `seat-${entry.id}`
                 const suggestedTables = getSuggestedTables(entry.partySize)
-                const waitTime = Math.round((Date.now() - new Date(entry.createdAt).getTime()) / (1000 * 60))
+                const waitTime = (() => {
+                  if (!entry.createdAt) return 0
+
+                  let createdTime: number
+                  if ((entry.createdAt as any).seconds) {
+                    // Firebase Timestamp object
+                    createdTime = (entry.createdAt as any).seconds * 1000
+                  } else if (typeof entry.createdAt === 'string') {
+                    // String timestamp
+                    createdTime = new Date(entry.createdAt).getTime()
+                  } else {
+                    // Already a number
+                    createdTime = entry.createdAt as number
+                  }
+
+                  if (isNaN(createdTime)) return 0
+                  return Math.round((Date.now() - createdTime) / (1000 * 60))
+                })()
 
                 return (
                   <div
