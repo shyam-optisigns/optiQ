@@ -645,7 +645,7 @@ export default function RestaurantDashboard() {
                   required
                   value={newTableForm.tableNumber}
                   onChange={(e) => setNewTableForm(prev => ({ ...prev, tableNumber: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                   placeholder="e.g., 1, A1, Patio-2"
                 />
               </div>
@@ -658,7 +658,7 @@ export default function RestaurantDashboard() {
                 <select
                   value={newTableForm.seatCount}
                   onChange={(e) => setNewTableForm(prev => ({ ...prev, seatCount: parseInt(e.target.value) }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 bg-white"
                 >
                   {[2, 4, 6, 8, 10, 12].map(count => (
                     <option key={count} value={count}>{count} seats</option>
