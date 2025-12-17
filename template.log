@@ -8,3 +8,23 @@
 2025-12-17T12:18:29:   ➜  Local:   http://localhost:5173/
 2025-12-17T12:18:29:   ➜  Network: use --host to expose
 2025-12-17T12:19:30: 12:19:30 PM [vite] (client) hmr update /src/App.tsx, /src/index.css
+2025-12-17T12:23:28: 12:23:28 PM [vite] (client) hmr update /src/pages/Index.tsx, /src/index.css
+2025-12-17T12:23:28: 12:23:28 PM [vite] Internal server error: Failed to resolve import "@/components/ui/button" from "src/pages/Index.tsx". Does the file exist?
+2025-12-17T12:23:28:   Plugin: vite:import-analysis
+2025-12-17T12:23:28:   File: /Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/src/pages/Index.tsx:2:23
+2025-12-17T12:23:28:   2  |  var _s = $RefreshSig$();
+2025-12-17T12:23:28:   3  |  import { useState } from "react";
+2025-12-17T12:23:28:   4  |  import { Button } from "@/components/ui/button";
+2025-12-17T12:23:28:      |                          ^
+2025-12-17T12:23:28:   5  |  import { Card, CardContent } from "@/components/ui/card";
+2025-12-17T12:23:28:   6  |  export default function Index() {
+2025-12-17T12:23:28:       at TransformPluginContext._formatLog (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42528:41)
+2025-12-17T12:23:28:       at TransformPluginContext.error (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42525:16)
+2025-12-17T12:23:28:       at normalizeUrl (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40504:23)
+2025-12-17T12:23:28:       at async file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40623:37
+2025-12-17T12:23:28:       at async Promise.all (index 2)
+2025-12-17T12:23:28:       at async TransformPluginContext.transform (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:40550:7)
+2025-12-17T12:23:28:       at async EnvironmentPluginContainer.transform (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:42323:18)
+2025-12-17T12:23:28:       at async loadAndTransform (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:35739:27)
+2025-12-17T12:23:28:       at async viteTransformMiddleware (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:37254:24)
+2025-12-17T12:24:30: 12:24:30 PM [vite] (client) hmr update /src/App.tsx, /src/index.css
