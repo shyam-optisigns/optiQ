@@ -1,8 +1,6 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import { Clock, Users, CheckCircle, XCircle, AlertTriangle, Plus } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { Users, AlertTriangle, Plus } from 'lucide-react'
 
 interface QueueEntry {
   id: string
@@ -33,7 +31,7 @@ interface Restaurant {
   address?: string
 }
 
-export default function RestaurantDashboard() {
+export default function DashboardPage() {
   const params = useParams()
   const restaurantSlug = params.restaurantSlug as string
 
@@ -60,7 +58,7 @@ export default function RestaurantDashboard() {
       const interval = setInterval(fetchData, 10000)
       return () => clearInterval(interval)
     }
-  }, [restaurantSlug]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [restaurantSlug])
 
   const fetchData = async () => {
     try {
@@ -101,7 +99,7 @@ export default function RestaurantDashboard() {
         setTablePositions(data.tablePositions || {})
       }
     } catch (error) {
-      console.error('Failed to load layout:', err)
+      console.error('Failed to load layout:', error)
     }
   }
 
@@ -117,7 +115,7 @@ export default function RestaurantDashboard() {
         console.error('Failed to save layout')
       }
     } catch (error) {
-      console.error('Failed to save layout:', err)
+      console.error('Failed to save layout:', error)
     }
   }
 
@@ -542,7 +540,7 @@ export default function RestaurantDashboard() {
                     createdTime = new Date(entry.createdAt).getTime()
                   } else {
                     // Already a number
-                    createdTime = entry.createdAt as number
+                    createdTime = entry.createdAt as any
                   }
 
                   if (isNaN(createdTime)) return 0

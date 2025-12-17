@@ -1,7 +1,5 @@
-'use client'
-
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useNavigate } from 'react-router-dom'
 import { MapPin, Phone } from 'lucide-react'
 
 interface Restaurant {
@@ -16,7 +14,7 @@ interface Restaurant {
 
 export default function RestaurantPage() {
   const params = useParams()
-  const router = useRouter()
+  const navigate = useNavigate()
   const slug = params.slug as string
 
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null)
@@ -72,7 +70,7 @@ export default function RestaurantPage() {
       const data = await response.json()
 
       if (response.ok) {
-        router.push(`/queue/${data.queueId}`)
+        navigate(`/queue/${data.queueId}`)
       } else {
         setError(data.error || 'Failed to join queue')
       }
@@ -181,7 +179,7 @@ export default function RestaurantPage() {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white"
                   placeholder="your@email.com"
                 />
-                <p className="text-xs text-gray-500 mt-1">We&apos;ll email you updates about your queue position</p>
+                <p className="text-xs text-gray-500 mt-1">We'll email you updates about your queue position</p>
               </div>
 
               <div>
@@ -225,7 +223,7 @@ export default function RestaurantPage() {
           <div className="text-center">
             <h3 className="font-semibold text-gray-900 mb-2">Email Notifications</h3>
             <p className="text-gray-600 text-sm">
-              We&apos;ll send you email updates about your position and notify you when your table is ready.
+              We'll send you email updates about your position and notify you when your table is ready.
             </p>
           </div>
         </div>

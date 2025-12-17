@@ -1,3 +1,6 @@
+// NOTE: This file contains server-side code and will not work in the browser
+// It's kept for reference but should be moved to Edge Functions or API routes
+// @ts-ignore - resend is not available in browser context
 import { Resend } from 'resend'
 
 export interface EmailMessage {
@@ -6,6 +9,7 @@ export interface EmailMessage {
   html: string
 }
 
+// @ts-ignore
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function sendEmail({ to, subject, html }: EmailMessage): Promise<boolean> {

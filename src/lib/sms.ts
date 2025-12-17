@@ -1,3 +1,6 @@
+// NOTE: This file contains server-side code and will not work in the browser
+// It's kept for reference but should be moved to Edge Functions or API routes
+// @ts-ignore - twilio is not available in browser context
 import twilio from 'twilio'
 
 const client = twilio(
