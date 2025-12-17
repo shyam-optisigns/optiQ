@@ -28,3 +28,50 @@
 2025-12-17T12:23:28:       at async loadAndTransform (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:35739:27)
 2025-12-17T12:23:28:       at async viteTransformMiddleware (file:///Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template/node_modules/.pnpm/vite@6.4.1_@types+node@20.19.26_jiti@1.21.7/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:37254:24)
 2025-12-17T12:24:30: 12:24:30 PM [vite] (client) hmr update /src/App.tsx, /src/index.css
+2025-12-17T12:28:17: 
+2025-12-17T12:28:17: > queuing-system@0.1.0 dev /Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template
+2025-12-17T12:28:17: > vite
+2025-12-17T12:28:17: 
+2025-12-17T12:28:17: 
+2025-12-17T12:28:17:   VITE v6.4.1  ready in 88 ms
+2025-12-17T12:28:17: 
+2025-12-17T12:28:17:   ➜  Local:   http://localhost:5173/
+2025-12-17T12:28:17:   ➜  Network: use --host to expose
+2025-12-17T12:28:38:  ELIFECYCLE  Command failed with exit code 143.
+2025-12-17T12:28:38: 
+2025-12-17T12:28:38: > queuing-system@0.1.0 dev /Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template
+2025-12-17T12:28:38: > vite
+2025-12-17T12:28:38: 
+2025-12-17T12:28:38: 
+2025-12-17T12:28:38:   VITE v6.4.1  ready in 84 ms
+2025-12-17T12:28:38: 
+2025-12-17T12:28:38:   ➜  Local:   http://localhost:5173/
+2025-12-17T12:28:38:   ➜  Network: use --host to expose
+2025-12-17T12:29:02:  ELIFECYCLE  Command failed with exit code 143.
+2025-12-17T12:29:02: 
+2025-12-17T12:29:02: > queuing-system@0.1.0 dev /Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template
+2025-12-17T12:29:02: > vite
+2025-12-17T12:29:02: 
+2025-12-17T12:29:02: 
+2025-12-17T12:29:02:   VITE v6.4.1  ready in 81 ms
+2025-12-17T12:29:02: 
+2025-12-17T12:29:02:   ➜  Local:   http://localhost:5173/
+2025-12-17T12:29:02:   ➜  Network: use --host to expose
+2025-12-17T12:29:26: 
+2025-12-17T12:29:26: > queuing-system@0.1.0 dev /Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template
+2025-12-17T12:29:26: > vite
+2025-12-17T12:29:26: 
+2025-12-17T12:29:26: 
+2025-12-17T12:29:26:   VITE v6.4.1  ready in 82 ms
+2025-12-17T12:29:26: 
+2025-12-17T12:29:26:   ➜  Local:   http://localhost:5173/
+2025-12-17T12:29:26:   ➜  Network: use --host to expose
+2025-12-17T12:29:39: 
+2025-12-17T12:29:39: > queuing-system@0.1.0 dev /Users/shyam/Desktop/optisigns/kaze/kaze-latest/optiedge-product-showcases-1-template
+2025-12-17T12:29:39: > vite
+2025-12-17T12:29:39: 
+2025-12-17T12:29:39: 
+2025-12-17T12:29:39:   VITE v6.4.1  ready in 89 ms
+2025-12-17T12:29:39: 
+2025-12-17T12:29:39:   ➜  Local:   http://localhost:5173/
+2025-12-17T12:29:39:   ➜  Network: use --host to expose
